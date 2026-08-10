@@ -1,7 +1,6 @@
 import os
 import re
 from bs4 import BeautifulSoup
-import pandas as pd
 
 MAPA_PODATKI = "podatki"
 MAPA_HTML = os.path.join(MAPA_PODATKI, "html")
@@ -10,12 +9,12 @@ def izlusci_podatke_iz_html():
     """
     Prebere vse shranjene HTML datoteke v mapi 'podatki/html/'
     in izlušči naslov, izvajalca, leto, žanre, oceno ter število recenzij.
+    Vrača seznam slovarjev.
     """
     vsi_albumi = []
     
-    # Preverimo vse .html datoteke v mapi
     datoteke = [f for f in os.listdir(MAPA_HTML) if f.endswith(".html")]
-    datoteke.sort() # Razvrstimo jih po vrstnem redu (stran_01, stran_02...)
+    datoteke.sort()
 
     print(f"Začenjam obdelavo {len(datoteke)} HTML datotek...")
 
@@ -46,7 +45,7 @@ def izlusci_podatke_iz_html():
             ocena_el = vrstica.find("div", class_="scoreValue")
             ocena = ocena_el.text.strip() if ocena_el else None
 
-            # 3. Število recenzij (pogosto piše npr. "1,250 ratings" ali "85 reviews")
+            # 3. Število recenzij
             reviews_el = vrstica.find("div", class_="scoreText")
             st_recenzij = None
             if reviews_el:
@@ -55,8 +54,7 @@ def izlusci_podatke_iz_html():
                 if match:
                     st_recenzij = match.group(1).replace(",", "")
 
-            # 4. Datum / Leto izida ali Žanri (če obstajajo v podrobnostih vrstice)
-            # Na AOTY je datum pogosto v div.albumListDate ali v podrobnostih pod naslovom
+            # 4. Leto izida
             date_el = vrstica.find("div", class_="albumListDate")
             leto = None
             if date_el:
@@ -68,7 +66,6 @@ def izlusci_podatke_iz_html():
             genre_el = vrstica.find("div", class_="albumListGenre")
             zanri = genre_el.text.strip() if genre_el else None
 
-            # Dodamo slovar v seznam
             vsi_albumi.append({
                 "izvajalec": izvajalec,
                 "naslov": naslov,
@@ -78,17 +75,9 @@ def izlusci_podatke_iz_html():
                 "st_recenzij": st_recenzij,
             })
 
-    # Pretvorimo v Pandas DataFrame in shranimo v CSV
-    df = pd.DataFrame(vsi_albumi)
-    
-    os.makedirs(MAPA_PODATKI, exist_ok=True)
-    pot_csv = os.path.join(MAPA_PODATKI, "albumi.csv")
-    df.to_csv(pot_csv, index=False, encoding="utf-8-sig")
-    
-    print(f"\nIzluščenje uspešno zaključeno!")
-    print(f"Skupaj izluščenih albumov: {len(df)}")
-    print(f"Shranjeno v '{pot_csv}'.")
-    return df
+    print(f"\nIzluščenje uspešno zaključen!")
+    print(f"Skupaj izluščenih albumov: {len(vsi_albumi)}")
+    return vsi_albumi
 
 if __name__ == "__main__":
     izlusci_podatke_iz_html()
