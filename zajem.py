@@ -39,12 +39,9 @@ def zajemi_albume(st_strani=20):
             else:
                 izvajalec, naslov = "Neznano", "Neznano"
 
-            # 2. Ocena in število ocen (znotraj albumListData ali albumListScore)
-            podatki_div = vrstica.find("div", class_="albumListData")
-            
-            # Ocena kritikov ali uporabnikov
-            score_el = vrstica.find("div", class_="albumListScore")
-            ocena = score_el.text.strip() if score_el else None
+            # 2. Ocena - natančen selektor glede na HTML strukturo
+            ocena_el = vrstica.find("div", class_="scoreValue")
+            ocena = ocena_el.text.strip() if ocena_el else None
 
             vsi_albumi.append({
                 "izvajalec": izvajalec,
@@ -52,12 +49,10 @@ def zajemi_albume(st_strani=20):
                 "ocena": ocena,
             })
 
-        # Obvezen premor, da ne preobremenimo strežnika
-        time.sleep(1.5)
+        time.sleep(1.2)
 
     df = pd.DataFrame(vsi_albumi)
     
-    # Ustvarimo mapo 'podatki', če ne obstaja
     os.makedirs("podatki", exist_ok=True)
     pot_do_datoteke = os.path.join("podatki", "albumi.csv")
     
