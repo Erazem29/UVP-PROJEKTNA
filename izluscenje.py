@@ -1,18 +1,34 @@
 import os
 import re
+from datetime import datetime
 from bs4 import BeautifulSoup
 
 MAPA_PODATKI = "podatki"
 MAPA_HTML = os.path.join(MAPA_PODATKI, "html")
 
+# Domene, po katerih prepoznamo, na kateri platformi je album na voljo.
+# Ujemanje po domeni je bolj zanesljivo kot po CSS razredu, ker se ta
+# lahko spremeni, medtem ko je domena (spotify.com, bandcamp.com ...) stabilna.
+PLATFORME_VZORCI = {
+    "open.spotify.com": "Spotify",
+    "music.apple.com": "Apple Music",
+    "geo.music.apple.com": "Apple Music",
+    "soundcloud.com": "SoundCloud",
+    "bandcamp.com": "Bandcamp",
+    "amazon.com": "Amazon",
+    "amzn.to": "Amazon (Vinyl)",
+}
+
+
 def izlusci_podatke_iz_html():
     """
     Prebere vse shranjene HTML datoteke v mapi 'podatki/html/'
-    in izlušči naslov, izvajalca, leto, žanre, oceno ter število recenzij.
+    in izlušči naslov, izvajalca, celoten datum izida, žanre, oceno,
+    število recenzij ter platforme, na katerih je album na voljo.
     Vrača seznam slovarjev.
     """
     vsi_albumi = []
-    
+
     datoteke = [f for f in os.listdir(MAPA_HTML) if f.endswith(".html")]
     datoteke.sort()
 
@@ -20,7 +36,7 @@ def izlusci_podatke_iz_html():
 
     for ime_datoteke in datoteke:
         pot = os.path.join(MAPA_HTML, ime_datoteke)
-        
+
         with open(pot, "r", encoding="utf-8") as f:
             vsebina = f.read()
 
@@ -31,7 +47,7 @@ def izlusci_podatke_iz_html():
             # 1. Izvajalec in Naslov
             naslov_el = vrstica.find("h2", class_="albumListTitle")
             povezava = naslov_el.find("a") if naslov_el else None
-            
+
             if povezava:
                 polno_ime = povezava.text.strip()
                 if " - " in polno_ime:
@@ -54,30 +70,51 @@ def izlusci_podatke_iz_html():
                 if match:
                     st_recenzij = match.group(1).replace(",", "")
 
-            # 4. Leto izida
+            # 4. Celoten datum izida (npr. "March 15, 2015")
             date_el = vrstica.find("div", class_="albumListDate")
-            leto = None
+            datum_izida, leto, mesec = None, None, None
             if date_el:
-                match_leto = re.search(r'\b(19\d\d|20\d\d)\b', date_el.text)
-                if match_leto:
-                    leto = match_leto.group(1)
+                besedilo = date_el.text.strip()
+                try:
+                    datum_izida = datetime.strptime(besedilo, "%B %d, %Y")
+                    leto = datum_izida.year
+                    mesec = datum_izida.month
+                except ValueError:
+                    # če datum ni v pričakovani obliki, poskusimo dobiti vsaj leto
+                    match_leto = re.search(r'\b(19\d\d|20\d\d)\b', besedilo)
+                    if match_leto:
+                        leto = int(match_leto.group(1))
 
             # 5. Žanri
             genre_el = vrstica.find("div", class_="albumListGenre")
             zanri = genre_el.text.strip() if genre_el else None
 
+            # 6. Platforme, na katerih je album na voljo
+            platforme = set()
+            for a in vrstica.find_all("a", href=True):
+                href = a["href"]
+                for vzorec, ime_platforme in PLATFORME_VZORCI.items():
+                    if vzorec in href:
+                        platforme.add(ime_platforme)
+                        break
+            platforme_niz = ", ".join(sorted(platforme)) if platforme else None
+
             vsi_albumi.append({
                 "izvajalec": izvajalec,
                 "naslov": naslov,
+                "datum_izida": datum_izida.strftime("%Y-%m-%d") if datum_izida else None,
                 "leto": leto,
+                "mesec": mesec,
                 "zanri": zanri,
                 "ocena": ocena,
                 "st_recenzij": st_recenzij,
+                "platforme": platforme_niz,
             })
 
-    print(f"\nIzluščenje uspešno zaključen!")
+    print(f"\nIzluščenje uspešno zaključeno!")
     print(f"Skupaj izluščenih albumov: {len(vsi_albumi)}")
     return vsi_albumi
+
 
 if __name__ == "__main__":
     izlusci_podatke_iz_html()
