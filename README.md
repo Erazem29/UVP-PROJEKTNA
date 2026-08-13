@@ -1,6 +1,6 @@
 # Analiza najbolje ocenjenih albumov (AlbumOfTheYear)
 
-Projektna naloga pri predmetu Uvod v programiranje. Program zajame podatke o 500+ najbolje ocenjenih albumih vseh časov s spletne strani [AlbumOfTheYear](https://www.albumoftheyear.org/ratings/6-highest-rated/all/1) (izvajalec, naslov, leto izida, žanri, kritiška ocena, število recenzij) ter izvede statistično analizo in vizualizacijo podatkov.
+Projektna naloga pri predmetu Uvod v programiranje. Program zajame podatke o 500 najbolje ocenjenih albumih vseh časov s spletne strani [AlbumOfTheYear](https://www.albumoftheyear.org/ratings/6-highest-rated/all/1) (izvajalec, naslov, leto izida, žanri, kritiška ocena, število recenzij) ter izvede statistično analizo in vizualizacijo podatkov.
 
 ## Struktura projekta
 
