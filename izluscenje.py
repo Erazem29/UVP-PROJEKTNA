@@ -6,9 +6,6 @@ from bs4 import BeautifulSoup
 MAPA_PODATKI = "podatki"
 MAPA_HTML = os.path.join(MAPA_PODATKI, "html")
 
-# Domene, po katerih prepoznamo, na kateri platformi je album na voljo.
-# Ujemanje po domeni je bolj zanesljivo kot po CSS razredu, ker se ta
-# lahko spremeni, medtem ko je domena (spotify.com, bandcamp.com ...) stabilna.
 PLATFORME_VZORCI = {
     "open.spotify.com": "Spotify",
     "music.apple.com": "Apple Music",
@@ -44,7 +41,6 @@ def izlusci_podatke_iz_html():
         vrstice = soup.find_all("div", class_="albumListRow")
 
         for vrstica in vrstice:
-            # 1. Izvajalec in Naslov
             naslov_el = vrstica.find("h2", class_="albumListTitle")
             povezava = naslov_el.find("a") if naslov_el else None
 
@@ -57,11 +53,9 @@ def izlusci_podatke_iz_html():
             else:
                 izvajalec, naslov = "Neznano", "Neznano"
 
-            # 2. Ocena
             ocena_el = vrstica.find("div", class_="scoreValue")
             ocena = ocena_el.text.strip() if ocena_el else None
 
-            # 3. Število recenzij
             reviews_el = vrstica.find("div", class_="scoreText")
             st_recenzij = None
             if reviews_el:
@@ -70,7 +64,6 @@ def izlusci_podatke_iz_html():
                 if match:
                     st_recenzij = match.group(1).replace(",", "")
 
-            # 4. Celoten datum izida (npr. "March 15, 2015")
             date_el = vrstica.find("div", class_="albumListDate")
             datum_izida, leto, mesec = None, None, None
             if date_el:
@@ -80,16 +73,17 @@ def izlusci_podatke_iz_html():
                     leto = datum_izida.year
                     mesec = datum_izida.month
                 except ValueError:
-                    # če datum ni v pričakovani obliki, poskusimo dobiti vsaj leto
                     match_leto = re.search(r'\b(19\d\d|20\d\d)\b', besedilo)
                     if match_leto:
                         leto = int(match_leto.group(1))
 
-            # 5. Žanri
             genre_el = vrstica.find("div", class_="albumListGenre")
-            zanri = genre_el.text.strip() if genre_el else None
+            if genre_el:
+                genre_povezave = genre_el.find_all("a")
+                zanri = ", ".join(a.text.strip() for a in genre_povezave) if genre_povezave else None
+            else:
+                zanri = None
 
-            # 6. Platforme, na katerih je album na voljo
             platforme = set()
             for a in vrstica.find_all("a", href=True):
                 href = a["href"]

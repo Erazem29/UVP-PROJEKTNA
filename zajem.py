@@ -12,7 +12,6 @@ HEADERS = {
 
 
 def prenesi_strani(st_strani=20):
-    """Prenese posamezne HTML strani in jih shrani lokalno v mapo."""
     os.makedirs(MAPA_HTML, exist_ok=True)
     print(f"Začenjam prenos {st_strani} HTML strani...")
 

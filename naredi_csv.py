@@ -6,10 +6,6 @@ MAPA_PODATKI = "podatki"
 POT_CSV = os.path.join(MAPA_PODATKI, "albumi.csv")
 
 def shrani_v_csv(podatki):
-    """
-    Sprejme seznam slovarjev ali DataFrame z podatki o albumih
-    in jih shrani v CSV datoteko.
-    """
     if podatki is None or len(podatki) == 0:
         print("Opozorilo: Podatki so prazni!")
         return
