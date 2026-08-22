@@ -45,3 +45,5 @@ python main.py --skip-download
 ```
 
 Ko je `podatki/albumi.csv` ustvarjen, odprite `analiza.ipynb` (npr. v VS Code ali Jupyterju) in poženite celice od zgoraj navzdol za analizo in grafe.
+
+Pri projektni nalogi sem si bežno pomagal s Claudeom, tu je link do pogovora: https://claude.ai/share/cdc00b04-3791-42db-9f08-1be4dc9dc979
